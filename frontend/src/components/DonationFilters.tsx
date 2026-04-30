@@ -50,10 +50,7 @@ export function DonationFilters({
   defaultCustomDateTo,
 }: Props) {
   return (
-    <div
-      className="flex flex-col gap-3 lg:flex-row lg:items-center"
-      suppressHydrationWarning
-    >
+    <div className="flex flex-col gap-3 lg:flex-row lg:items-center" suppressHydrationWarning>
       <div className="flex-1">
         <Input
           value={search}
@@ -144,7 +141,7 @@ export function DonationFilters({
             />
             {!customDateTo && (
               <p className="px-1 text-xs text-muted-foreground">
-                Blank uses today, {defaultCustomDateTo}.
+                Default date is today, {defaultCustomDateTo}
               </p>
             )}
           </div>
