@@ -3,9 +3,13 @@ import express from "express";
 import { isValidStatusTransition } from "./transitions.js";
 import {
   createDonation,
+  hasDonor,
   getDonation,
   hasDonation,
+  hasNonprofit,
+  listDonors,
   listDonations,
+  listNonprofits,
   updateDonationStatus
 } from "./store.js";
 import {
@@ -19,9 +23,27 @@ const port = Number(process.env.PORT ?? 4000);
 
 app.use(cors());
 app.use(express.json());
+app.use((err: unknown, _req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (err instanceof SyntaxError) {
+    return res.status(400).json({
+      error: "Invalid JSON",
+      message: "Request body must be valid JSON."
+    });
+  }
+
+  return next(err);
+});
 
 app.get("/health", (_req, res) => {
   res.json({ ok: true });
+});
+
+app.get("/nonprofits", (_req, res) => {
+  res.json({ nonprofits: listNonprofits() });
+});
+
+app.get("/donors", (_req, res) => {
+  res.json({ donors: listDonors() });
 });
 
 app.post("/donations", (req, res) => {
@@ -40,6 +62,20 @@ app.post("/donations", (req, res) => {
     });
   }
 
+  if (!hasNonprofit(validation.value.nonprofitId)) {
+    return res.status(400).json({
+      error: "Invalid donation payload",
+      message: `nonprofitId ${validation.value.nonprofitId} does not exist.`
+    });
+  }
+
+  if (!hasDonor(validation.value.donorId)) {
+    return res.status(400).json({
+      error: "Invalid donation payload",
+      message: `donorId ${validation.value.donorId} does not exist.`
+    });
+  }
+
   const created = createDonation({
     ...validation.value,
     updatedAt: validation.value.updatedAt ?? validation.value.createdAt ?? new Date().toISOString()
@@ -51,6 +87,7 @@ app.post("/donations", (req, res) => {
 app.get("/donations", (req, res) => {
   const status = req.query.status;
   const paymentMethod = req.query.paymentMethod;
+  const createdAtDate = req.query.createdAtDate;
 
   if (status !== undefined && !isDonationStatus(status)) {
     return res.status(400).json({
@@ -66,8 +103,20 @@ app.get("/donations", (req, res) => {
     });
   }
 
+  if (
+    createdAtDate !== undefined &&
+    (typeof createdAtDate !== "string" ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(createdAtDate) ||
+      Number.isNaN(Date.parse(`${createdAtDate}T00:00:00Z`)))
+  ) {
+    return res.status(400).json({
+      error: "Invalid filter",
+      message: "createdAtDate filter must be YYYY-MM-DD."
+    });
+  }
+
   return res.json({
-    donations: listDonations({ status, paymentMethod })
+    donations: listDonations({ status, paymentMethod, createdAtDate })
   });
 });
 

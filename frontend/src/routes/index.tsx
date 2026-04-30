@@ -41,6 +41,7 @@ function DashboardPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [paymentFilter, setPaymentFilter] = useState<PaymentFilter>("all");
+  const [createdAtDate, setCreatedAtDate] = useState("");
 
   const [createOpen, setCreateOpen] = useState(false);
   const [detailUuid, setDetailUuid] = useState<string | null>(null);
@@ -52,6 +53,7 @@ function DashboardPage() {
       const data = await listDonations({
         status: statusFilter,
         paymentMethod: paymentFilter,
+        createdAtDate,
       });
       setDonations(data);
     } catch (e) {
@@ -59,7 +61,7 @@ function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, [statusFilter, paymentFilter]);
+  }, [statusFilter, paymentFilter, createdAtDate]);
 
   useEffect(() => {
     refresh();
@@ -132,6 +134,8 @@ function DashboardPage() {
           onStatus={setStatusFilter}
           payment={paymentFilter}
           onPayment={setPaymentFilter}
+          createdAtDate={createdAtDate}
+          onCreatedAtDate={setCreatedAtDate}
         />
 
         {actionError && (

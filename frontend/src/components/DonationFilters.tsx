@@ -18,6 +18,8 @@ interface Props {
   onStatus: (v: StatusFilter) => void;
   payment: PaymentFilter;
   onPayment: (v: PaymentFilter) => void;
+  createdAtDate: string;
+  onCreatedAtDate: (v: string) => void;
 }
 
 export function DonationFilters({
@@ -27,6 +29,8 @@ export function DonationFilters({
   onStatus,
   payment,
   onPayment,
+  createdAtDate,
+  onCreatedAtDate,
 }: Props) {
   return (
     <div
@@ -77,6 +81,16 @@ export function DonationFilters({
           <SelectItem value="venmo">Venmo</SelectItem>
         </SelectContent>
       </Select>
+
+      <Input
+        type="date"
+        value={createdAtDate}
+        onChange={(e) => onCreatedAtDate(e.target.value)}
+        className="h-11 w-full rounded-full border-border/70 bg-card px-4 md:w-[170px]"
+        aria-label="Filter by created date"
+        data-form-type="other"
+        suppressHydrationWarning
+      />
     </div>
   );
 }

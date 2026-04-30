@@ -13,6 +13,16 @@ export interface Donation {
   updatedAt: string;
 }
 
+export interface Nonprofit {
+  id: string;
+  name: string;
+}
+
+export interface Donor {
+  id: string;
+  name: string;
+}
+
 export const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:4000";
 
 export interface ApiErrorShape {
@@ -46,15 +56,29 @@ async function handle<T>(res: Response): Promise<T> {
 export function listDonations(params?: {
   status?: DonationStatus | "all";
   paymentMethod?: PaymentMethod | "all";
+  createdAtDate?: string;
 }): Promise<Donation[]> {
   const qs = new URLSearchParams();
   if (params?.status && params.status !== "all") qs.set("status", params.status);
   if (params?.paymentMethod && params.paymentMethod !== "all")
     qs.set("paymentMethod", params.paymentMethod);
+  if (params?.createdAtDate) qs.set("createdAtDate", params.createdAtDate);
   const suffix = qs.toString() ? `?${qs.toString()}` : "";
   return fetch(`${API_BASE}/donations${suffix}`)
     .then(handle<{ donations: Donation[] }>)
     .then((body) => body.donations);
+}
+
+export function listNonprofits(): Promise<Nonprofit[]> {
+  return fetch(`${API_BASE}/nonprofits`)
+    .then(handle<{ nonprofits: Nonprofit[] }>)
+    .then((body) => body.nonprofits);
+}
+
+export function listDonors(): Promise<Donor[]> {
+  return fetch(`${API_BASE}/donors`)
+    .then(handle<{ donors: Donor[] }>)
+    .then((body) => body.donors);
 }
 
 export function getDonation(uuid: string): Promise<Donation> {

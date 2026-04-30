@@ -1,4 +1,21 @@
-import type { Donation } from "./types.js";
+import type { Donation, Donor, Nonprofit } from "./types.js";
+
+export const seedNonprofits: Nonprofit[] = [
+  { id: "org1", name: "Every Shelter" },
+  { id: "org2", name: "GiveDirectly" },
+  { id: "org3", name: "One Acre Fund" }
+];
+
+export const seedDonors: Donor[] = [
+  { id: "donor_01", name: "Avery Johnson" },
+  { id: "donor_02", name: "Maya Patel" },
+  { id: "donor_03", name: "Noah Kim" },
+  { id: "donor_04", name: "Sofia Garcia" },
+  { id: "donor_05", name: "Ethan Brooks" },
+  { id: "donor_06", name: "Priya Shah" },
+  { id: "donor_07", name: "Leo Martinez" },
+  { id: "donor_08", name: "Chloe Nguyen" }
+];
 
 export const seedDonations: Donation[] = [
   {

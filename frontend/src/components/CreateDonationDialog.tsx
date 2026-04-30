@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Check, ChevronsUpDown } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -18,11 +19,25 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
   ApiError,
   createDonation,
+  listDonors,
+  listNonprofits,
+  type Donor,
   type DonationStatus,
+  type Nonprofit,
   type PaymentMethod,
 } from "@/lib/donations";
+import { cn } from "@/lib/utils";
 
 interface Props {
   open: boolean;
@@ -42,6 +57,90 @@ function newUuid(): string {
   });
 }
 
+interface LookupOption {
+  id: string;
+  name: string;
+}
+
+interface LookupComboboxProps {
+  label: string;
+  value: string;
+  options: LookupOption[];
+  placeholder: string;
+  emptyMessage: string;
+  disabled?: boolean;
+  onChange: (value: string) => void;
+}
+
+function LookupCombobox({
+  label,
+  value,
+  options,
+  placeholder,
+  emptyMessage,
+  disabled,
+  onChange,
+}: LookupComboboxProps) {
+  const [open, setOpen] = useState(false);
+  const selected = options.find((option) => option.id === value);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          aria-label={label}
+          disabled={disabled}
+          className={cn(
+            "h-10 w-full justify-between rounded-md px-3 text-left font-normal",
+            !selected && "text-muted-foreground",
+          )}
+          data-form-type="other"
+          suppressHydrationWarning
+        >
+          <span className="min-w-0 truncate">
+            {selected ? `${selected.name} (${selected.id})` : placeholder}
+          </span>
+          <ChevronsUpDown className="opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+        <Command>
+          <CommandInput
+            placeholder="Search by name or ID..."
+            data-form-type="other"
+            suppressHydrationWarning
+          />
+          <CommandList>
+            <CommandEmpty>{emptyMessage}</CommandEmpty>
+            <CommandGroup>
+              {options.map((option) => (
+                <CommandItem
+                  key={option.id}
+                  value={`${option.name} ${option.id}`}
+                  onSelect={() => {
+                    onChange(option.id);
+                    setOpen(false);
+                  }}
+                >
+                  <Check
+                    className={cn("opacity-0", value === option.id && "opacity-100")}
+                  />
+                  <span className="min-w-0 flex-1 truncate">{option.name}</span>
+                  <span className="text-xs text-muted-foreground">{option.id}</span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 export function CreateDonationDialog({ open, onOpenChange, onCreated }: Props) {
   const [uuid, setUuid] = useState(newUuid());
   const [amount, setAmount] = useState("");
@@ -49,8 +148,50 @@ export function CreateDonationDialog({ open, onOpenChange, onCreated }: Props) {
   const [nonprofitId, setNonprofitId] = useState("");
   const [donorId, setDonorId] = useState("");
   const [status, setStatus] = useState<DonationStatus>("new");
+  const [nonprofits, setNonprofits] = useState<Nonprofit[]>([]);
+  const [donors, setDonors] = useState<Donor[]>([]);
+  const [lookupsLoading, setLookupsLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const lookupOptions = useMemo(
+    () => ({
+      nonprofits: nonprofits.map((nonprofit) => ({
+        id: nonprofit.id,
+        name: nonprofit.name,
+      })),
+      donors: donors.map((donor) => ({
+        id: donor.id,
+        name: donor.name,
+      })),
+    }),
+    [donors, nonprofits],
+  );
+
+  useEffect(() => {
+    if (!open || (nonprofits.length > 0 && donors.length > 0)) return;
+
+    let cancelled = false;
+    setLookupsLoading(true);
+    setError(null);
+    Promise.all([listNonprofits(), listDonors()])
+      .then(([nextNonprofits, nextDonors]) => {
+        if (cancelled) return;
+        setNonprofits(nextNonprofits);
+        setDonors(nextDonors);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : "Failed to load nonprofit and donor lists.");
+      })
+      .finally(() => {
+        if (!cancelled) setLookupsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [donors.length, nonprofits.length, open]);
 
   const reset = () => {
     setUuid(newUuid());
@@ -145,7 +286,7 @@ export function CreateDonationDialog({ open, onOpenChange, onCreated }: Props) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label htmlFor="amount">Amount (USD)</Label>
               <Input
@@ -178,23 +319,29 @@ export function CreateDonationDialog({ open, onOpenChange, onCreated }: Props) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <Label htmlFor="nonprofit">Nonprofit ID</Label>
-              <Input
-                id="nonprofit"
+              <Label>Nonprofit</Label>
+              <LookupCombobox
+                label="Nonprofit"
                 value={nonprofitId}
-                onChange={(e) => setNonprofitId(e.target.value)}
-                required
+                options={lookupOptions.nonprofits}
+                placeholder={lookupsLoading ? "Loading nonprofits..." : "Select nonprofit"}
+                emptyMessage="No nonprofits found."
+                disabled={lookupsLoading}
+                onChange={setNonprofitId}
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="donor">Donor ID</Label>
-              <Input
-                id="donor"
+              <Label>Donor</Label>
+              <LookupCombobox
+                label="Donor"
                 value={donorId}
-                onChange={(e) => setDonorId(e.target.value)}
-                required
+                options={lookupOptions.donors}
+                placeholder={lookupsLoading ? "Loading donors..." : "Select donor"}
+                emptyMessage="No donors found."
+                disabled={lookupsLoading}
+                onChange={setDonorId}
               />
             </div>
           </div>

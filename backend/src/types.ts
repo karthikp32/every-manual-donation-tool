@@ -16,3 +16,13 @@ export interface Donation {
 export type DonationCreateInput = Omit<Donation, "updatedAt"> & {
   updatedAt?: string;
 };
+
+export interface Nonprofit {
+  id: string;
+  name: string;
+}
+
+export interface Donor {
+  id: string;
+  name: string;
+}
