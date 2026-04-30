@@ -95,21 +95,12 @@ function DashboardPage() {
       <header className="border-b border-border/60 bg-card/60 backdrop-blur">
         <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-5">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="h-4 w-4"
-              >
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z" />
-              </svg>
-            </div>
+            <img
+              src="/brand/every-wordmark.svg"
+              alt="Every.org"
+              className="h-10 w-auto"
+            />
             <div>
-              <div className="text-sm font-medium text-muted-foreground">Every.org</div>
               <h1 className="text-lg font-semibold leading-tight">Donation Processor</h1>
             </div>
           </div>
