@@ -146,7 +146,7 @@ Rules:
 - Reusing the same idempotency key for the same method/path with a different request body returns `409`. This mirrors the production pattern where a key protects retries of one logical operation, not unrelated mutations.
 - Idempotency records live only in memory, matching the rest of this assessment store. A production version would persist records with TTL cleanup.
 
-## UI Decisions
+## Design Decisions
 
 - Invalid transitions are hidden from users.
 - Amounts are entered and displayed in dollars, then converted to cents for the API.
