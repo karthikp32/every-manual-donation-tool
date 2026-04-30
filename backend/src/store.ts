@@ -48,14 +48,6 @@ export function getDonation(uuid: string): Donation | undefined {
   return donation ? { ...donation } : undefined;
 }
 
-export function hasNonprofit(id: string): boolean {
-  return nonprofits.has(id);
-}
-
-export function hasDonor(id: string): boolean {
-  return donors.has(id);
-}
-
 export function hasDonation(uuid: string): boolean {
   return donations.has(uuid);
 }

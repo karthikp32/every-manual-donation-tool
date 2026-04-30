@@ -37,6 +37,7 @@ Required request shape:
 
 - Invalid payloads return `400`.
 - `uuid` is required and must be a valid UUID.
+- `nonprofitId` and `donorId` must be non-empty strings, but they are not required to exist in the seeded lookup tables.
 - Duplicate UUIDs return `409`.
 - `updatedAt` is set to provided `updatedAt`, otherwise `createdAt`.
 
@@ -152,7 +153,7 @@ Rules:
 - The create form exposes UUID because the assessment contract requires clients to provide one.
 - The dashboard includes status, payment method, and date-range filters plus summary cards for total amount, total count, success rate, and failure rate.
 - The date filter uses common operational presets: all time, past month, past 3 months, past 6 months, past 12 months, and custom. Presets make routine queue review faster, while custom from/to dates keep investigation workflows flexible. If custom `To` is left blank, the UI clearly defaults it to today.
-- Nonprofits and donors are modeled as separate in-memory tables and exposed through lookup endpoints. This keeps donation rows tied to stable ids while allowing the UI to show human-readable names.
+- Nonprofits and donors are modeled as separate in-memory lookup tables and exposed through lookup endpoints. The API accepts non-empty `nonprofitId` and `donorId` values even if they are not present in those lookup tables, which keeps the manual intake path flexible for newly onboarded or externally sourced ids.
 - The dashboard table and donation detail summary show nonprofit and donor names instead of ids. Operators work from recognizable names, while the API still sends and stores ids for stable references.
 - The create dialog lets users search/select nonprofits and donors by name, then sends `nonprofitId` and `donorId` to the API under the hood. This reduces typing mistakes while preserving the backend contract and making the form friendlier for internal operators.
 - Group list endpoints support `page` and `pageSize` pagination. This keeps the API/UI shape ready for larger donation volumes and prevents internal dashboards from assuming every list can be loaded at once.

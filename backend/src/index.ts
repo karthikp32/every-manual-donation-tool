@@ -8,10 +8,8 @@ import { paginate, parsePagination } from "./pagination.js";
 import { isValidStatusTransition } from "./transitions.js";
 import {
   createDonation,
-  hasDonor,
   getDonation,
   hasDonation,
-  hasNonprofit,
   listDonors,
   listDonations,
   listNonprofits,
@@ -105,24 +103,6 @@ app.post("/donations", (req, res) => {
     };
     storeIdempotentResponse(idempotency, 409, body);
     return res.status(409).json(body);
-  }
-
-  if (!hasNonprofit(validation.value.nonprofitId)) {
-    const body = {
-      error: "Invalid donation payload",
-      message: `nonprofitId ${validation.value.nonprofitId} does not exist.`
-    };
-    storeIdempotentResponse(idempotency, 400, body);
-    return res.status(400).json(body);
-  }
-
-  if (!hasDonor(validation.value.donorId)) {
-    const body = {
-      error: "Invalid donation payload",
-      message: `donorId ${validation.value.donorId} does not exist.`
-    };
-    storeIdempotentResponse(idempotency, 400, body);
-    return res.status(400).json(body);
   }
 
   const created = createDonation({
