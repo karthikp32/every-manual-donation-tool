@@ -31,6 +31,7 @@ interface Props {
   onCustomDateFrom: (v: string) => void;
   customDateTo: string;
   onCustomDateTo: (v: string) => void;
+  defaultCustomDateTo: string;
 }
 
 export function DonationFilters({
@@ -46,6 +47,7 @@ export function DonationFilters({
   onCustomDateFrom,
   customDateTo,
   onCustomDateTo,
+  defaultCustomDateTo,
 }: Props) {
   return (
     <div
@@ -116,25 +118,36 @@ export function DonationFilters({
       </Select>
 
       {dateRange === "custom" && (
-        <div className="grid grid-cols-2 gap-3 md:flex md:items-center">
-          <Input
-            type="date"
-            value={customDateFrom}
-            onChange={(e) => onCustomDateFrom(e.target.value)}
-            className="h-11 rounded-full border-border/70 bg-card px-4 md:w-[160px]"
-            aria-label="Custom start date"
-            data-form-type="other"
-            suppressHydrationWarning
-          />
-          <Input
-            type="date"
-            value={customDateTo}
-            onChange={(e) => onCustomDateTo(e.target.value)}
-            className="h-11 rounded-full border-border/70 bg-card px-4 md:w-[160px]"
-            aria-label="Custom end date"
-            data-form-type="other"
-            suppressHydrationWarning
-          />
+        <div className="grid gap-3 sm:grid-cols-2 md:flex md:items-start">
+          <div className="space-y-1">
+            <span className="px-1 text-xs font-medium text-muted-foreground">From</span>
+            <Input
+              type="date"
+              value={customDateFrom}
+              onChange={(e) => onCustomDateFrom(e.target.value)}
+              className="h-11 rounded-full border-border/70 bg-card px-4 md:w-[160px]"
+              aria-label="Custom start date"
+              data-form-type="other"
+              suppressHydrationWarning
+            />
+          </div>
+          <div className="space-y-1">
+            <span className="px-1 text-xs font-medium text-muted-foreground">To</span>
+            <Input
+              type="date"
+              value={customDateTo}
+              onChange={(e) => onCustomDateTo(e.target.value)}
+              className="h-11 rounded-full border-border/70 bg-card px-4 md:w-[160px]"
+              aria-label="Custom end date"
+              data-form-type="other"
+              suppressHydrationWarning
+            />
+            {!customDateTo && (
+              <p className="px-1 text-xs text-muted-foreground">
+                Blank uses today, {defaultCustomDateTo}.
+              </p>
+            )}
+          </div>
         </div>
       )}
     </div>

@@ -49,12 +49,14 @@ function DashboardPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [detailUuid, setDetailUuid] = useState<string | null>(null);
 
+  const todayDate = useMemo(() => new Date().toISOString().slice(0, 10), []);
+
   const dateFilter = useMemo(() => {
     if (dateRange === "all") return {};
     if (dateRange === "custom") {
       return {
         createdAtFrom: customDateFrom || undefined,
-        createdAtTo: customDateTo || undefined,
+        createdAtTo: customDateTo || todayDate,
       };
     }
 
@@ -70,7 +72,7 @@ function DashboardPage() {
     return {
       createdAtFrom: from.toISOString().slice(0, 10),
     };
-  }, [customDateFrom, customDateTo, dateRange]);
+  }, [customDateFrom, customDateTo, dateRange, todayDate]);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -166,6 +168,7 @@ function DashboardPage() {
           onCustomDateFrom={setCustomDateFrom}
           customDateTo={customDateTo}
           onCustomDateTo={setCustomDateTo}
+          defaultCustomDateTo={todayDate}
         />
 
         {actionError && (
