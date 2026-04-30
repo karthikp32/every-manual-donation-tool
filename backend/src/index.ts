@@ -1,5 +1,9 @@
 import cors from "cors";
 import express from "express";
+import {
+  beginIdempotentRequest,
+  storeIdempotentResponse
+} from "./idempotency.js";
 import { isValidStatusTransition } from "./transitions.js";
 import {
   createDonation,
@@ -47,33 +51,59 @@ app.get("/donors", (_req, res) => {
 });
 
 app.post("/donations", (req, res) => {
+  const idempotency = beginIdempotentRequest({
+    method: req.method,
+    path: req.path,
+    idempotencyKey: req.get("Idempotency-Key"),
+    body: req.body
+  });
+
+  if (idempotency.kind === "replay") {
+    return res.status(idempotency.statusCode).json(idempotency.body);
+  }
+
+  if (idempotency.kind === "conflict") {
+    return res.status(409).json({
+      error: "Idempotency key conflict",
+      message: "Idempotency-Key was already used with a different request body."
+    });
+  }
+
   const validation = validateDonationCreatePayload(req.body);
   if (!validation.ok) {
-    return res.status(400).json({
+    const body = {
       error: "Invalid donation payload",
       message: validation.message
-    });
+    };
+    storeIdempotentResponse(idempotency, 400, body);
+    return res.status(400).json(body);
   }
 
   if (hasDonation(validation.value.uuid)) {
-    return res.status(409).json({
+    const body = {
       error: "Donation already exists",
       message: `Donation ${validation.value.uuid} already exists.`
-    });
+    };
+    storeIdempotentResponse(idempotency, 409, body);
+    return res.status(409).json(body);
   }
 
   if (!hasNonprofit(validation.value.nonprofitId)) {
-    return res.status(400).json({
+    const body = {
       error: "Invalid donation payload",
       message: `nonprofitId ${validation.value.nonprofitId} does not exist.`
-    });
+    };
+    storeIdempotentResponse(idempotency, 400, body);
+    return res.status(400).json(body);
   }
 
   if (!hasDonor(validation.value.donorId)) {
-    return res.status(400).json({
+    const body = {
       error: "Invalid donation payload",
       message: `donorId ${validation.value.donorId} does not exist.`
-    });
+    };
+    storeIdempotentResponse(idempotency, 400, body);
+    return res.status(400).json(body);
   }
 
   const created = createDonation({
@@ -81,6 +111,7 @@ app.post("/donations", (req, res) => {
     updatedAt: validation.value.updatedAt ?? validation.value.createdAt ?? new Date().toISOString()
   });
 
+  storeIdempotentResponse(idempotency, 201, created);
   return res.status(201).json(created);
 });
 
@@ -173,37 +204,64 @@ app.get("/donations/:uuid", (req, res) => {
 });
 
 app.patch("/donations/:uuid/status", (req, res) => {
+  const idempotency = beginIdempotentRequest({
+    method: req.method,
+    path: req.path,
+    idempotencyKey: req.get("Idempotency-Key"),
+    body: req.body
+  });
+
+  if (idempotency.kind === "replay") {
+    return res.status(idempotency.statusCode).json(idempotency.body);
+  }
+
+  if (idempotency.kind === "conflict") {
+    return res.status(409).json({
+      error: "Idempotency key conflict",
+      message: "Idempotency-Key was already used with a different request body."
+    });
+  }
+
   const donation = getDonation(req.params.uuid);
   if (!donation) {
-    return res.status(404).json({
+    const body = {
       error: "Donation not found",
       message: `Donation ${req.params.uuid} was not found.`
-    });
+    };
+    storeIdempotentResponse(idempotency, 404, body);
+    return res.status(404).json(body);
   }
 
   const targetStatus = req.body?.status;
   if (!isDonationStatus(targetStatus)) {
-    return res.status(400).json({
+    const body = {
       error: "Invalid status",
       message: "status must be one of new, pending, success, or failure."
-    });
+    };
+    storeIdempotentResponse(idempotency, 400, body);
+    return res.status(400).json(body);
   }
 
   if (targetStatus === donation.status) {
-    return res.status(409).json({
+    const body = {
       error: "Status already set",
       message: `Donation is already ${targetStatus}.`
-    });
+    };
+    storeIdempotentResponse(idempotency, 409, body);
+    return res.status(409).json(body);
   }
 
   if (!isValidStatusTransition(donation.status, targetStatus)) {
-    return res.status(422).json({
+    const body = {
       error: "Invalid status transition",
       message: `Cannot transition donation from ${donation.status} to ${targetStatus}.`
-    });
+    };
+    storeIdempotentResponse(idempotency, 422, body);
+    return res.status(422).json(body);
   }
 
   const updated = updateDonationStatus(req.params.uuid, targetStatus);
+  storeIdempotentResponse(idempotency, 200, updated);
   return res.json(updated);
 });
 

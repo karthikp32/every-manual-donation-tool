@@ -53,6 +53,18 @@ async function handle<T>(res: Response): Promise<T> {
   return (await res.json()) as T;
 }
 
+function newIdempotencyKey(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
 export function listDonations(params?: {
   status?: DonationStatus | "all";
   paymentMethod?: PaymentMethod | "all";
@@ -94,7 +106,10 @@ export type DonationCreateInput = Omit<Donation, "updatedAt">;
 export function createDonation(input: DonationCreateInput): Promise<Donation> {
   return fetch(`${API_BASE}/donations`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "Idempotency-Key": newIdempotencyKey(),
+    },
     body: JSON.stringify(input),
   }).then(handle<Donation>);
 }
@@ -102,7 +117,10 @@ export function createDonation(input: DonationCreateInput): Promise<Donation> {
 export function updateStatus(uuid: string, status: DonationStatus): Promise<Donation> {
   return fetch(`${API_BASE}/donations/${uuid}/status`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "Idempotency-Key": newIdempotencyKey(),
+    },
     body: JSON.stringify({ status }),
   }).then(handle<Donation>);
 }

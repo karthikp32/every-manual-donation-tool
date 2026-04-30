@@ -1,4 +1,4 @@
-# Every.org Donation Processor
+# Every.org Manual Donation Processor
 
 A small full-stack TypeScript app for manually processing donations. It uses an Express API in `backend/`, the provided React dashboard in `frontend/`, and an in-memory store seeded with the assessment data.
 
@@ -115,9 +115,12 @@ Rules:
 
 ## Idempotency and Conflict Decisions
 
-- Duplicate UUID `POST /donations` returns `409`.
-- Same-status `PATCH /donations/:uuid/status` returns `409`.
-- Other duplicate status update interpretations are intentionally scoped to same-status updates for this timebox.
+- Duplicate UUID `POST /donations` returns `409` when no matching idempotency record is found.
+- Same-status `PATCH /donations/:uuid/status` returns `409`, as required.
+- `POST /donations` and `PATCH /donations/:uuid/status` support an optional `Idempotency-Key` header. The frontend sends a fresh UUID key for each create/status action.
+- The in-memory API scopes idempotency records by HTTP method, path, and key, then stores the request fingerprint plus the JSON response. Retrying the same method/path/key/body returns the originally stored status code and response body.
+- Reusing the same idempotency key for the same method/path with a different request body returns `409`. This mirrors the production pattern where a key protects retries of one logical operation, not unrelated mutations.
+- Idempotency records live only in memory, matching the rest of this assessment store. A production version would persist records with TTL cleanup.
 
 ## UI Decisions
 
@@ -138,4 +141,4 @@ Rules:
 
 ## AI Usage
 
-AI was used for scaffolding and implementation, but transition logic and product decisions were reviewed manually.
+AI was used for scaffolding and implementation, but transition logic, idempotency behavior, and product decisions were reviewed manually.
