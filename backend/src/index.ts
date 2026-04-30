@@ -88,6 +88,8 @@ app.get("/donations", (req, res) => {
   const status = req.query.status;
   const paymentMethod = req.query.paymentMethod;
   const createdAtDate = req.query.createdAtDate;
+  const createdAtFrom = req.query.createdAtFrom;
+  const createdAtTo = req.query.createdAtTo;
 
   if (status !== undefined && !isDonationStatus(status)) {
     return res.status(400).json({
@@ -115,8 +117,46 @@ app.get("/donations", (req, res) => {
     });
   }
 
+  for (const [name, value] of [
+    ["createdAtFrom", createdAtFrom],
+    ["createdAtTo", createdAtTo]
+  ] as const) {
+    if (
+      value !== undefined &&
+      (typeof value !== "string" ||
+        !/^\d{4}-\d{2}-\d{2}$/.test(value) ||
+        Number.isNaN(Date.parse(`${value}T00:00:00Z`)))
+    ) {
+      return res.status(400).json({
+        error: "Invalid filter",
+        message: `${name} filter must be YYYY-MM-DD.`
+      });
+    }
+  }
+
+  if (
+    typeof createdAtFrom === "string" &&
+    typeof createdAtTo === "string" &&
+    createdAtFrom > createdAtTo
+  ) {
+    return res.status(400).json({
+      error: "Invalid filter",
+      message: "createdAtFrom must be before or equal to createdAtTo."
+    });
+  }
+
+  const createdAtFromFilter =
+    typeof createdAtFrom === "string" ? createdAtFrom : undefined;
+  const createdAtToFilter = typeof createdAtTo === "string" ? createdAtTo : undefined;
+
   return res.json({
-    donations: listDonations({ status, paymentMethod, createdAtDate })
+    donations: listDonations({
+      status,
+      paymentMethod,
+      createdAtDate,
+      createdAtFrom: createdAtFromFilter,
+      createdAtTo: createdAtToFilter
+    })
   });
 });
 

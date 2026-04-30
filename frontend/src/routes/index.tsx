@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { SummaryCards } from "@/components/SummaryCards";
 import {
   DonationFilters,
+  type DateRangeFilter,
   type PaymentFilter,
   type StatusFilter,
 } from "@/components/DonationFilters";
@@ -41,10 +42,35 @@ function DashboardPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [paymentFilter, setPaymentFilter] = useState<PaymentFilter>("all");
-  const [createdAtDate, setCreatedAtDate] = useState("");
+  const [dateRange, setDateRange] = useState<DateRangeFilter>("all");
+  const [customDateFrom, setCustomDateFrom] = useState("");
+  const [customDateTo, setCustomDateTo] = useState("");
 
   const [createOpen, setCreateOpen] = useState(false);
   const [detailUuid, setDetailUuid] = useState<string | null>(null);
+
+  const dateFilter = useMemo(() => {
+    if (dateRange === "all") return {};
+    if (dateRange === "custom") {
+      return {
+        createdAtFrom: customDateFrom || undefined,
+        createdAtTo: customDateTo || undefined,
+      };
+    }
+
+    const monthsByRange: Record<Exclude<DateRangeFilter, "all" | "custom">, number> = {
+      last_1_month: 1,
+      last_3_months: 3,
+      last_6_months: 6,
+      last_12_months: 12,
+    };
+    const from = new Date();
+    from.setMonth(from.getMonth() - monthsByRange[dateRange]);
+
+    return {
+      createdAtFrom: from.toISOString().slice(0, 10),
+    };
+  }, [customDateFrom, customDateTo, dateRange]);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -53,7 +79,7 @@ function DashboardPage() {
       const data = await listDonations({
         status: statusFilter,
         paymentMethod: paymentFilter,
-        createdAtDate,
+        ...dateFilter,
       });
       setDonations(data);
     } catch (e) {
@@ -61,7 +87,7 @@ function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, [statusFilter, paymentFilter, createdAtDate]);
+  }, [statusFilter, paymentFilter, dateFilter]);
 
   useEffect(() => {
     refresh();
@@ -134,8 +160,12 @@ function DashboardPage() {
           onStatus={setStatusFilter}
           payment={paymentFilter}
           onPayment={setPaymentFilter}
-          createdAtDate={createdAtDate}
-          onCreatedAtDate={setCreatedAtDate}
+          dateRange={dateRange}
+          onDateRange={setDateRange}
+          customDateFrom={customDateFrom}
+          onCustomDateFrom={setCustomDateFrom}
+          customDateTo={customDateTo}
+          onCustomDateTo={setCustomDateTo}
         />
 
         {actionError && (

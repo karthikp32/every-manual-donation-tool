@@ -54,7 +54,9 @@ Optional filters:
 
 - `?status=new|pending|success|failure`
 - `?paymentMethod=cc|ach|crypto|venmo`
-- `?createdAtDate=YYYY-MM-DD`
+- `?createdAtFrom=YYYY-MM-DD`
+- `?createdAtTo=YYYY-MM-DD`
+- `?createdAtDate=YYYY-MM-DD` for exact-day filtering
 
 ### `GET /nonprofits`
 
@@ -122,7 +124,8 @@ Rules:
 - Invalid transitions are hidden from users.
 - Amounts are entered and displayed in dollars, then converted to cents for the API.
 - The create form exposes UUID because the assessment contract requires clients to provide one.
-- The dashboard includes status, payment method, and created-at date filters plus summary cards for total amount, total count, success rate, and failure rate. The created-at date filter lets operations staff isolate the manual processing queue for a specific business day without scanning timestamps.
+- The dashboard includes status, payment method, and date-range filters plus summary cards for total amount, total count, success rate, and failure rate.
+- The date filter uses common operational presets: all time, past month, past 3 months, past 6 months, past 12 months, and custom. Presets make routine queue review faster, while custom from/to dates keep investigation workflows flexible.
 - Nonprofits and donors are modeled as separate in-memory tables and exposed through lookup endpoints. This keeps donation rows tied to stable ids while allowing the UI to show human-readable names.
 - The create dialog lets users search/select nonprofits and donors by name, then sends `nonprofitId` and `donorId` to the API under the hood. This reduces typing mistakes while preserving the backend contract and making the form friendlier for internal operators.
 - UUIDs are truncated in the table and can be copied by clicking them.

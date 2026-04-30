@@ -10,6 +10,13 @@ import type { DonationStatus, PaymentMethod } from "@/lib/donations";
 
 export type StatusFilter = DonationStatus | "all";
 export type PaymentFilter = PaymentMethod | "all";
+export type DateRangeFilter =
+  | "all"
+  | "last_1_month"
+  | "last_3_months"
+  | "last_6_months"
+  | "last_12_months"
+  | "custom";
 
 interface Props {
   search: string;
@@ -18,8 +25,12 @@ interface Props {
   onStatus: (v: StatusFilter) => void;
   payment: PaymentFilter;
   onPayment: (v: PaymentFilter) => void;
-  createdAtDate: string;
-  onCreatedAtDate: (v: string) => void;
+  dateRange: DateRangeFilter;
+  onDateRange: (v: DateRangeFilter) => void;
+  customDateFrom: string;
+  onCustomDateFrom: (v: string) => void;
+  customDateTo: string;
+  onCustomDateTo: (v: string) => void;
 }
 
 export function DonationFilters({
@@ -29,12 +40,16 @@ export function DonationFilters({
   onStatus,
   payment,
   onPayment,
-  createdAtDate,
-  onCreatedAtDate,
+  dateRange,
+  onDateRange,
+  customDateFrom,
+  onCustomDateFrom,
+  customDateTo,
+  onCustomDateTo,
 }: Props) {
   return (
     <div
-      className="flex flex-col gap-3 md:flex-row md:items-center"
+      className="flex flex-col gap-3 lg:flex-row lg:items-center"
       suppressHydrationWarning
     >
       <div className="flex-1">
@@ -82,15 +97,46 @@ export function DonationFilters({
         </SelectContent>
       </Select>
 
-      <Input
-        type="date"
-        value={createdAtDate}
-        onChange={(e) => onCreatedAtDate(e.target.value)}
-        className="h-11 w-full rounded-full border-border/70 bg-card px-4 md:w-[170px]"
-        aria-label="Filter by created date"
-        data-form-type="other"
-        suppressHydrationWarning
-      />
+      <Select value={dateRange} onValueChange={(v) => onDateRange(v as DateRangeFilter)}>
+        <SelectTrigger
+          className="h-11 w-full rounded-full border-border/70 bg-card px-4 md:w-[200px]"
+          data-form-type="other"
+          suppressHydrationWarning
+        >
+          <SelectValue placeholder="Date range" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All time</SelectItem>
+          <SelectItem value="last_1_month">Past month</SelectItem>
+          <SelectItem value="last_3_months">Past 3 months</SelectItem>
+          <SelectItem value="last_6_months">Past 6 months</SelectItem>
+          <SelectItem value="last_12_months">Past 12 months</SelectItem>
+          <SelectItem value="custom">Custom</SelectItem>
+        </SelectContent>
+      </Select>
+
+      {dateRange === "custom" && (
+        <div className="grid grid-cols-2 gap-3 md:flex md:items-center">
+          <Input
+            type="date"
+            value={customDateFrom}
+            onChange={(e) => onCustomDateFrom(e.target.value)}
+            className="h-11 rounded-full border-border/70 bg-card px-4 md:w-[160px]"
+            aria-label="Custom start date"
+            data-form-type="other"
+            suppressHydrationWarning
+          />
+          <Input
+            type="date"
+            value={customDateTo}
+            onChange={(e) => onCustomDateTo(e.target.value)}
+            className="h-11 rounded-full border-border/70 bg-card px-4 md:w-[160px]"
+            aria-label="Custom end date"
+            data-form-type="other"
+            suppressHydrationWarning
+          />
+        </div>
+      )}
     </div>
   );
 }

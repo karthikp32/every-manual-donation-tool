@@ -11,6 +11,8 @@ export function listDonations(filters: {
   status?: Donation["status"];
   paymentMethod?: Donation["paymentMethod"];
   createdAtDate?: string;
+  createdAtFrom?: string;
+  createdAtTo?: string;
 }): Donation[] {
   return Array.from(donations.values())
     .filter((donation) => !filters.status || donation.status === filters.status)
@@ -21,6 +23,14 @@ export function listDonations(filters: {
     .filter(
       (donation) =>
         !filters.createdAtDate || donation.createdAt.slice(0, 10) === filters.createdAtDate
+    )
+    .filter(
+      (donation) =>
+        !filters.createdAtFrom || donation.createdAt.slice(0, 10) >= filters.createdAtFrom
+    )
+    .filter(
+      (donation) =>
+        !filters.createdAtTo || donation.createdAt.slice(0, 10) <= filters.createdAtTo
     )
     .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 }

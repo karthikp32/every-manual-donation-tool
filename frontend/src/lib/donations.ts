@@ -57,12 +57,16 @@ export function listDonations(params?: {
   status?: DonationStatus | "all";
   paymentMethod?: PaymentMethod | "all";
   createdAtDate?: string;
+  createdAtFrom?: string;
+  createdAtTo?: string;
 }): Promise<Donation[]> {
   const qs = new URLSearchParams();
   if (params?.status && params.status !== "all") qs.set("status", params.status);
   if (params?.paymentMethod && params.paymentMethod !== "all")
     qs.set("paymentMethod", params.paymentMethod);
   if (params?.createdAtDate) qs.set("createdAtDate", params.createdAtDate);
+  if (params?.createdAtFrom) qs.set("createdAtFrom", params.createdAtFrom);
+  if (params?.createdAtTo) qs.set("createdAtTo", params.createdAtTo);
   const suffix = qs.toString() ? `?${qs.toString()}` : "";
   return fetch(`${API_BASE}/donations${suffix}`)
     .then(handle<{ donations: Donation[] }>)
