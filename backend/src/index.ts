@@ -4,6 +4,7 @@ import {
   beginIdempotentRequest,
   storeIdempotentResponse
 } from "./idempotency.js";
+import { paginate, parsePagination } from "./pagination.js";
 import { isValidStatusTransition } from "./transitions.js";
 import {
   createDonation,
@@ -42,12 +43,30 @@ app.get("/health", (_req, res) => {
   res.json({ ok: true });
 });
 
-app.get("/nonprofits", (_req, res) => {
-  res.json({ nonprofits: listNonprofits() });
+app.get("/nonprofits", (req, res) => {
+  const pagination = parsePagination(req.query);
+  if (!pagination.ok) {
+    return res.status(400).json({
+      error: "Invalid pagination",
+      message: pagination.message
+    });
+  }
+
+  const result = paginate(listNonprofits(), pagination.value);
+  res.json({ nonprofits: result.items, pagination: result.pagination });
 });
 
-app.get("/donors", (_req, res) => {
-  res.json({ donors: listDonors() });
+app.get("/donors", (req, res) => {
+  const pagination = parsePagination(req.query);
+  if (!pagination.ok) {
+    return res.status(400).json({
+      error: "Invalid pagination",
+      message: pagination.message
+    });
+  }
+
+  const result = paginate(listDonors(), pagination.value);
+  res.json({ donors: result.items, pagination: result.pagination });
 });
 
 app.post("/donations", (req, res) => {
@@ -116,6 +135,14 @@ app.post("/donations", (req, res) => {
 });
 
 app.get("/donations", (req, res) => {
+  const pagination = parsePagination(req.query);
+  if (!pagination.ok) {
+    return res.status(400).json({
+      error: "Invalid pagination",
+      message: pagination.message
+    });
+  }
+
   const status = req.query.status;
   const paymentMethod = req.query.paymentMethod;
   const createdAtDate = req.query.createdAtDate;
@@ -180,14 +207,20 @@ app.get("/donations", (req, res) => {
     typeof createdAtFrom === "string" ? createdAtFrom : undefined;
   const createdAtToFilter = typeof createdAtTo === "string" ? createdAtTo : undefined;
 
-  return res.json({
-    donations: listDonations({
+  const result = paginate(
+    listDonations({
       status,
       paymentMethod,
       createdAtDate,
       createdAtFrom: createdAtFromFilter,
       createdAtTo: createdAtToFilter
-    })
+    }),
+    pagination.value
+  );
+
+  return res.json({
+    donations: result.items,
+    pagination: result.pagination
   });
 });
 

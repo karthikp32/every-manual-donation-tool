@@ -22,6 +22,8 @@ import {
 
 interface Props {
   uuid: string | null;
+  nonprofitNamesById: Record<string, string>;
+  donorNamesById: Record<string, string>;
   onClose: () => void;
   onChanged: () => void;
 }
@@ -44,7 +46,13 @@ function Field({ label, value, mono }: { label: string; value: React.ReactNode; 
   );
 }
 
-export function DonationDetailDrawer({ uuid, onClose, onChanged }: Props) {
+export function DonationDetailDrawer({
+  uuid,
+  nonprofitNamesById,
+  donorNamesById,
+  onClose,
+  onChanged,
+}: Props) {
   const [donation, setDonation] = useState<Donation | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -124,8 +132,14 @@ export function DonationDetailDrawer({ uuid, onClose, onChanged }: Props) {
                 label="Payment method"
                 value={paymentMethodLabel(donation.paymentMethod)}
               />
-              <Field label="Nonprofit ID" value={donation.nonprofitId} mono />
-              <Field label="Donor ID" value={donation.donorId} mono />
+              <Field
+                label="Nonprofit"
+                value={nonprofitNamesById[donation.nonprofitId] ?? donation.nonprofitId}
+              />
+              <Field
+                label="Donor"
+                value={donorNamesById[donation.donorId] ?? donation.donorId}
+              />
               <Field label="Created" value={formatDate(donation.createdAt)} />
               <Field label="Last updated" value={formatDate(donation.updatedAt)} />
             </div>

@@ -23,6 +23,18 @@ export interface Donor {
   name: string;
 }
 
+export interface PaginationMeta {
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface PaginatedDonations {
+  donations: Donation[];
+  pagination: PaginationMeta;
+}
+
 export const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:4000";
 
 export interface ApiErrorShape {
@@ -71,7 +83,9 @@ export function listDonations(params?: {
   createdAtDate?: string;
   createdAtFrom?: string;
   createdAtTo?: string;
-}): Promise<Donation[]> {
+  page?: number;
+  pageSize?: number;
+}): Promise<PaginatedDonations> {
   const qs = new URLSearchParams();
   if (params?.status && params.status !== "all") qs.set("status", params.status);
   if (params?.paymentMethod && params.paymentMethod !== "all")
@@ -79,21 +93,21 @@ export function listDonations(params?: {
   if (params?.createdAtDate) qs.set("createdAtDate", params.createdAtDate);
   if (params?.createdAtFrom) qs.set("createdAtFrom", params.createdAtFrom);
   if (params?.createdAtTo) qs.set("createdAtTo", params.createdAtTo);
+  if (params?.page) qs.set("page", String(params.page));
+  if (params?.pageSize) qs.set("pageSize", String(params.pageSize));
   const suffix = qs.toString() ? `?${qs.toString()}` : "";
-  return fetch(`${API_BASE}/donations${suffix}`)
-    .then(handle<{ donations: Donation[] }>)
-    .then((body) => body.donations);
+  return fetch(`${API_BASE}/donations${suffix}`).then(handle<PaginatedDonations>);
 }
 
 export function listNonprofits(): Promise<Nonprofit[]> {
-  return fetch(`${API_BASE}/nonprofits`)
-    .then(handle<{ nonprofits: Nonprofit[] }>)
+  return fetch(`${API_BASE}/nonprofits?page=1&pageSize=100`)
+    .then(handle<{ nonprofits: Nonprofit[]; pagination: PaginationMeta }>)
     .then((body) => body.nonprofits);
 }
 
 export function listDonors(): Promise<Donor[]> {
-  return fetch(`${API_BASE}/donors`)
-    .then(handle<{ donors: Donor[] }>)
+  return fetch(`${API_BASE}/donors?page=1&pageSize=100`)
+    .then(handle<{ donors: Donor[]; pagination: PaginationMeta }>)
     .then((body) => body.donors);
 }
 

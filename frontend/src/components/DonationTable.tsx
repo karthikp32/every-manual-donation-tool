@@ -20,6 +20,8 @@ import {
 
 interface Props {
   donations: Donation[];
+  nonprofitNamesById: Record<string, string>;
+  donorNamesById: Record<string, string>;
   onAction: (uuid: string, target: DonationStatus) => Promise<void>;
   onRowClick: (uuid: string) => void;
 }
@@ -35,7 +37,13 @@ function shortUuid(u: string) {
   return u.length > 12 ? `${u.slice(0, 8)}…${u.slice(-4)}` : u;
 }
 
-export function DonationTable({ donations, onAction, onRowClick }: Props) {
+export function DonationTable({
+  donations,
+  nonprofitNamesById,
+  donorNamesById,
+  onAction,
+  onRowClick,
+}: Props) {
   const [pendingKey, setPendingKey] = useState<string | null>(null);
 
   const handle = async (
@@ -119,11 +127,11 @@ export function DonationTable({ donations, onAction, onRowClick }: Props) {
                 <TableCell className="py-4 text-sm text-muted-foreground">
                   {paymentMethodLabel(d.paymentMethod)}
                 </TableCell>
-                <TableCell className="py-4 font-mono text-xs text-muted-foreground">
-                  {d.nonprofitId}
+                <TableCell className="py-4 text-sm text-muted-foreground">
+                  {nonprofitNamesById[d.nonprofitId] ?? d.nonprofitId}
                 </TableCell>
-                <TableCell className="py-4 font-mono text-xs text-muted-foreground">
-                  {d.donorId}
+                <TableCell className="py-4 text-sm text-muted-foreground">
+                  {donorNamesById[d.donorId] ?? d.donorId}
                 </TableCell>
                 <TableCell className="py-4 text-sm text-muted-foreground">
                   {formatDate(d.createdAt)}

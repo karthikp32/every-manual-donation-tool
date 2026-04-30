@@ -14,9 +14,14 @@ import { DonationDetailDrawer } from "@/components/DonationDetailDrawer";
 import {
   ApiError,
   listDonations,
+  listDonors,
+  listNonprofits,
   updateStatus,
+  type Donor,
   type Donation,
   type DonationStatus,
+  type Nonprofit,
+  type PaginationMeta,
 } from "@/lib/donations";
 
 export const Route = createFileRoute("/")({
@@ -35,6 +40,8 @@ export const Route = createFileRoute("/")({
 
 function DashboardPage() {
   const [donations, setDonations] = useState<Donation[]>([]);
+  const [nonprofits, setNonprofits] = useState<Nonprofit[]>([]);
+  const [donors, setDonors] = useState<Donor[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -45,11 +52,31 @@ function DashboardPage() {
   const [dateRange, setDateRange] = useState<DateRangeFilter>("all");
   const [customDateFrom, setCustomDateFrom] = useState("");
   const [customDateTo, setCustomDateTo] = useState("");
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState<PaginationMeta>({
+    page: 1,
+    pageSize: 10,
+    total: 0,
+    totalPages: 1,
+  });
 
   const [createOpen, setCreateOpen] = useState(false);
   const [detailUuid, setDetailUuid] = useState<string | null>(null);
 
   const todayDate = useMemo(() => new Date().toISOString().slice(0, 10), []);
+
+  const nonprofitNamesById = useMemo(
+    () =>
+      Object.fromEntries(
+        nonprofits.map((nonprofit) => [nonprofit.id, nonprofit.name]),
+      ),
+    [nonprofits],
+  );
+
+  const donorNamesById = useMemo(
+    () => Object.fromEntries(donors.map((donor) => [donor.id, donor.name])),
+    [donors],
+  );
 
   const dateFilter = useMemo(() => {
     if (dateRange === "all") return {};
@@ -81,19 +108,46 @@ function DashboardPage() {
       const data = await listDonations({
         status: statusFilter,
         paymentMethod: paymentFilter,
+        page,
+        pageSize: pagination.pageSize,
         ...dateFilter,
       });
-      setDonations(data);
+      setDonations(data.donations);
+      setPagination(data.pagination);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load donations");
     } finally {
       setLoading(false);
     }
-  }, [statusFilter, paymentFilter, dateFilter]);
+  }, [statusFilter, paymentFilter, page, pagination.pageSize, dateFilter]);
 
   useEffect(() => {
     refresh();
   }, [refresh]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [statusFilter, paymentFilter, dateRange, customDateFrom, customDateTo]);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([listNonprofits(), listDonors()])
+      .then(([nextNonprofits, nextDonors]) => {
+        if (cancelled) return;
+        setNonprofits(nextNonprofits);
+        setDonors(nextDonors);
+      })
+      .catch((e: unknown) => {
+        if (cancelled) return;
+        setActionError(
+          e instanceof Error ? e.message : "Failed to load nonprofit and donor names",
+        );
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -102,9 +156,11 @@ function DashboardPage() {
       (d) =>
         d.uuid.toLowerCase().includes(q) ||
         d.donorId.toLowerCase().includes(q) ||
-        d.nonprofitId.toLowerCase().includes(q),
+        d.nonprofitId.toLowerCase().includes(q) ||
+        (donorNamesById[d.donorId] ?? "").toLowerCase().includes(q) ||
+        (nonprofitNamesById[d.nonprofitId] ?? "").toLowerCase().includes(q),
     );
-  }, [donations, search]);
+  }, [donations, donorNamesById, nonprofitNamesById, search]);
 
   const handleAction = async (uuid: string, target: DonationStatus) => {
     setActionError(null);
@@ -196,9 +252,44 @@ function DashboardPage() {
         ) : (
           <DonationTable
             donations={filtered}
+            nonprofitNamesById={nonprofitNamesById}
+            donorNamesById={donorNamesById}
             onAction={handleAction}
             onRowClick={setDetailUuid}
           />
+        )}
+
+        {!error && !loading && (
+          <div className="flex flex-col gap-3 border-t border-border/60 pt-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              Showing page {pagination.page} of {pagination.totalPages} ·{" "}
+              {pagination.total} total donations
+            </div>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="rounded-full"
+                disabled={pagination.page <= 1}
+                onClick={() => setPage((current) => Math.max(1, current - 1))}
+              >
+                Previous
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="rounded-full"
+                disabled={pagination.page >= pagination.totalPages}
+                onClick={() =>
+                  setPage((current) =>
+                    Math.min(pagination.totalPages, current + 1),
+                  )
+                }
+              >
+                Next
+              </Button>
+            </div>
+          </div>
         )}
       </main>
 
@@ -210,6 +301,8 @@ function DashboardPage() {
 
       <DonationDetailDrawer
         uuid={detailUuid}
+        nonprofitNamesById={nonprofitNamesById}
+        donorNamesById={donorNamesById}
         onClose={() => setDetailUuid(null)}
         onChanged={refresh}
       />
