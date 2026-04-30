@@ -93,27 +93,29 @@ function DashboardPage() {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border/60 bg-card/60 backdrop-blur">
-        <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-5">
-          <div className="flex items-center gap-3">
+        <div className="mx-auto flex max-w-[1400px] flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-5">
+          <div className="flex min-w-0 items-center gap-3">
             <img
               src="/brand/every-wordmark.svg"
               alt="Every.org"
-              className="h-10 w-auto"
+              className="h-8 w-auto shrink-0 sm:h-10"
             />
-            <div>
-              <h1 className="text-lg font-semibold leading-tight">Donation Processor</h1>
+            <div className="min-w-0">
+              <h1 className="truncate text-base font-semibold leading-tight sm:text-lg">
+                Donation Processor
+              </h1>
             </div>
           </div>
           <Button
             onClick={() => setCreateOpen(true)}
-            className="rounded-full px-5"
+            className="w-full rounded-full px-5 sm:w-auto"
           >
             + Record donation
           </Button>
         </div>
       </header>
 
-      <main className="mx-auto max-w-[1400px] space-y-6 px-6 py-8">
+      <main className="mx-auto max-w-[1400px] space-y-6 px-4 py-6 sm:px-6 sm:py-8">
         <div>
           <h2 className="text-2xl font-semibold tracking-tight">Donations</h2>
           <p className="mt-1 text-sm text-muted-foreground">
