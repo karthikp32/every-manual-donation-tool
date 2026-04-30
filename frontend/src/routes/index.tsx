@@ -22,7 +22,7 @@ import {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Donation Processor — Every.org Internal" },
+      { title: "Manual Donation Processor — Every.org Internal" },
       {
         name: "description",
         content:
@@ -132,7 +132,7 @@ function DashboardPage() {
             />
             <div className="min-w-0">
               <h1 className="truncate text-base font-semibold leading-tight sm:text-lg">
-                Donation Processor
+                Manual Donation Processor
               </h1>
             </div>
           </div>

@@ -29,7 +29,7 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Donation Processor — Every.org Internal" },
+      { title: "Manual Donation Processor — Every.org Internal" },
       { name: "description", content: "Internal operations dashboard for processing manual donations on Every.org." },
       { name: "author", content: "Every.org" },
       { property: "og:title", content: "Donation Processor — Every.org Internal" },
