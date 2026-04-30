@@ -100,13 +100,13 @@ export function listDonations(params?: {
 }
 
 export function listNonprofits(): Promise<Nonprofit[]> {
-  return fetch(`${API_BASE}/nonprofits?page=1&pageSize=100`)
+  return fetch(`${API_BASE}/nonprofits?page=1&pageSize=10`)
     .then(handle<{ nonprofits: Nonprofit[]; pagination: PaginationMeta }>)
     .then((body) => body.nonprofits);
 }
 
 export function listDonors(): Promise<Donor[]> {
-  return fetch(`${API_BASE}/donors?page=1&pageSize=100`)
+  return fetch(`${API_BASE}/donors?page=1&pageSize=10`)
     .then(handle<{ donors: Donor[]; pagination: PaginationMeta }>)
     .then((body) => body.donors);
 }

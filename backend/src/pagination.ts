@@ -9,7 +9,7 @@ export interface PaginationMeta extends PaginationParams {
 }
 
 const defaultPage = 1;
-const defaultPageSize = 25;
+const defaultPageSize = 10;
 const maxPageSize = 100;
 
 export function parsePagination(query: {

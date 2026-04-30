@@ -49,7 +49,7 @@ Returns:
   "donations": [],
   "pagination": {
     "page": 1,
-    "pageSize": 25,
+    "pageSize": 10,
     "total": 0,
     "totalPages": 1
   }
@@ -63,7 +63,7 @@ Optional filters:
 - `?createdAtFrom=YYYY-MM-DD`
 - `?createdAtTo=YYYY-MM-DD`
 - `?createdAtDate=YYYY-MM-DD` for exact-day filtering
-- `?page=1&pageSize=25`
+- `?page=1&pageSize=10`
 
 ### `GET /nonprofits`
 
@@ -74,14 +74,14 @@ Returns the seeded nonprofit lookup table:
   "nonprofits": [{ "id": "org1", "name": "Every Shelter" }],
   "pagination": {
     "page": 1,
-    "pageSize": 25,
+    "pageSize": 10,
     "total": 3,
     "totalPages": 1
   }
 }
 ```
 
-Supports `?page=1&pageSize=25`.
+Supports `?page=1&pageSize=10`.
 
 ### `GET /donors`
 
@@ -92,14 +92,14 @@ Returns the seeded donor lookup table:
   "donors": [{ "id": "donor_01", "name": "Avery Johnson" }],
   "pagination": {
     "page": 1,
-    "pageSize": 25,
+    "pageSize": 10,
     "total": 8,
     "totalPages": 1
   }
 }
 ```
 
-Supports `?page=1&pageSize=25`.
+Supports `?page=1&pageSize=10`.
 
 ### `GET /donations/:uuid`
 
