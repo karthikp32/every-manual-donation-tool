@@ -102,7 +102,7 @@ function LookupCombobox({
           suppressHydrationWarning
         >
           <span className="min-w-0 truncate">
-            {selected ? `${selected.name} (${selected.id})` : placeholder}
+            {selected ? selected.name : placeholder}
           </span>
           <ChevronsUpDown className="opacity-50" />
         </Button>
@@ -126,11 +126,8 @@ function LookupCombobox({
                     setOpen(false);
                   }}
                 >
-                  <Check
-                    className={cn("opacity-0", value === option.id && "opacity-100")}
-                  />
+                  <Check className={cn("opacity-0", value === option.id && "opacity-100")} />
                   <span className="min-w-0 flex-1 truncate">{option.name}</span>
-                  <span className="text-xs text-muted-foreground">{option.id}</span>
                 </CommandItem>
               ))}
             </CommandGroup>
@@ -321,18 +318,6 @@ export function CreateDonationDialog({ open, onOpenChange, onCreated }: Props) {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <Label>Nonprofit</Label>
-              <LookupCombobox
-                label="Nonprofit"
-                value={nonprofitId}
-                options={lookupOptions.nonprofits}
-                placeholder={lookupsLoading ? "Loading nonprofits..." : "Select nonprofit"}
-                emptyMessage="No nonprofits found."
-                disabled={lookupsLoading}
-                onChange={setNonprofitId}
-              />
-            </div>
-            <div className="space-y-1.5">
               <Label>Donor</Label>
               <LookupCombobox
                 label="Donor"
@@ -342,6 +327,18 @@ export function CreateDonationDialog({ open, onOpenChange, onCreated }: Props) {
                 emptyMessage="No donors found."
                 disabled={lookupsLoading}
                 onChange={setDonorId}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Nonprofit</Label>
+              <LookupCombobox
+                label="Nonprofit"
+                value={nonprofitId}
+                options={lookupOptions.nonprofits}
+                placeholder={lookupsLoading ? "Loading nonprofits..." : "Select nonprofit"}
+                emptyMessage="No nonprofits found."
+                disabled={lookupsLoading}
+                onChange={setNonprofitId}
               />
             </div>
           </div>
