@@ -46,7 +46,13 @@ Returns:
 
 ```json
 {
-  "donations": []
+  "donations": [],
+  "pagination": {
+    "page": 1,
+    "pageSize": 25,
+    "total": 0,
+    "totalPages": 1
+  }
 }
 ```
 
@@ -57,6 +63,7 @@ Optional filters:
 - `?createdAtFrom=YYYY-MM-DD`
 - `?createdAtTo=YYYY-MM-DD`
 - `?createdAtDate=YYYY-MM-DD` for exact-day filtering
+- `?page=1&pageSize=25`
 
 ### `GET /nonprofits`
 
@@ -64,9 +71,17 @@ Returns the seeded nonprofit lookup table:
 
 ```json
 {
-  "nonprofits": [{ "id": "org1", "name": "Every Shelter" }]
+  "nonprofits": [{ "id": "org1", "name": "Every Shelter" }],
+  "pagination": {
+    "page": 1,
+    "pageSize": 25,
+    "total": 3,
+    "totalPages": 1
+  }
 }
 ```
+
+Supports `?page=1&pageSize=25`.
 
 ### `GET /donors`
 
@@ -74,9 +89,17 @@ Returns the seeded donor lookup table:
 
 ```json
 {
-  "donors": [{ "id": "donor_01", "name": "Avery Johnson" }]
+  "donors": [{ "id": "donor_01", "name": "Avery Johnson" }],
+  "pagination": {
+    "page": 1,
+    "pageSize": 25,
+    "total": 8,
+    "totalPages": 1
+  }
 }
 ```
+
+Supports `?page=1&pageSize=25`.
 
 ### `GET /donations/:uuid`
 
@@ -130,7 +153,9 @@ Rules:
 - The dashboard includes status, payment method, and date-range filters plus summary cards for total amount, total count, success rate, and failure rate.
 - The date filter uses common operational presets: all time, past month, past 3 months, past 6 months, past 12 months, and custom. Presets make routine queue review faster, while custom from/to dates keep investigation workflows flexible. If custom `To` is left blank, the UI clearly defaults it to today.
 - Nonprofits and donors are modeled as separate in-memory tables and exposed through lookup endpoints. This keeps donation rows tied to stable ids while allowing the UI to show human-readable names.
+- The dashboard table and donation detail summary show nonprofit and donor names instead of ids. Operators work from recognizable names, while the API still sends and stores ids for stable references.
 - The create dialog lets users search/select nonprofits and donors by name, then sends `nonprofitId` and `donorId` to the API under the hood. This reduces typing mistakes while preserving the backend contract and making the form friendlier for internal operators.
+- Group list endpoints support `page` and `pageSize` pagination. This keeps the API/UI shape ready for larger donation volumes and prevents internal dashboards from assuming every list can be loaded at once.
 - UUIDs are truncated in the table and can be copied by clicking them.
 
 ## Tradeoffs
@@ -138,7 +163,3 @@ Rules:
 - In-memory storage was chosen for speed, simplicity, and reliable local setup.
 - No auth, persistence, audit trail, or real payment processor are included.
 - Validation is intentionally lightweight and local to the API.
-
-## AI Usage
-
-AI was used for scaffolding and implementation, but transition logic, idempotency behavior, and product decisions were reviewed manually.
